@@ -12,10 +12,9 @@ class UploadPage extends StatefulWidget {
 }
 
 class _UploadPageState extends State<UploadPage> {
-  XFile? imageFile; // هنخزن الصورة هنا
-  final _controller = TextEditingController(); // هنخزن الاسم هنا
+  XFile? imageFile;
+  final _controller = TextEditingController();
 
-  // دالة لاختيار الصورة
   Future<void> _pickImage(ImageSource source) async {
     final picked = await ImagePicker().pickImage(source: source);
     if (picked != null) {
@@ -25,15 +24,14 @@ class _UploadPageState extends State<UploadPage> {
     }
   }
 
-  // دالة زرار Done
   void _onDone() {
     if (_controller.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("من فضلك اكتب اسمك")),
+        const SnackBar(content: Text("Please enter your name")),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("اسمك هو: ${_controller.text}")),
+        SnackBar(content: Text("Your name is: ${_controller.text}")),
       );
     }
   }
@@ -53,7 +51,6 @@ class _UploadPageState extends State<UploadPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // صورة البروفايل
             CircleAvatar(
               radius: 80,
               backgroundColor: Appcolor.primarycolor,
@@ -63,8 +60,6 @@ class _UploadPageState extends State<UploadPage> {
                       as ImageProvider,
             ),
             const SizedBox(height: 20),
-
-            // زرار الكاميرا
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Appcolor.primarycolor,
@@ -74,8 +69,6 @@ class _UploadPageState extends State<UploadPage> {
               child: const Text("Upload From Camera"),
             ),
             const SizedBox(height: 10),
-
-            // زرار المعرض
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Appcolor.primarycolor,
@@ -85,8 +78,6 @@ class _UploadPageState extends State<UploadPage> {
               child: const Text("Upload From Gallery"),
             ),
             const SizedBox(height: 20),
-
-            // إدخال الاسم
             TextFormField(
               controller: _controller,
               decoration: InputDecoration(
