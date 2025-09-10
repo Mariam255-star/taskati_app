@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
 
-pushTo(BuildContext context, Widget screen ) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) =>  screen),
+Future<T?> pushTo<T>(BuildContext context, Widget screen) {
+  return Navigator.of(context).push<T>(
+    MaterialPageRoute(builder: (_) => screen),
   );
 }
 
-pushWithReplacement(BuildContext context , Widget screen){
- Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(builder: (context) => screen,),
- 
- );
-
-
-
-
+Future<T?> pushWithReplacement<T>(BuildContext context, Widget screen) {
+  return Navigator.of(context).pushReplacement<T, T>(
+    MaterialPageRoute(builder: (_) => screen),
+  );
 }
