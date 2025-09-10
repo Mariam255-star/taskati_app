@@ -1,40 +1,20 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:taskati_app/core/Services/local_helper.dart';
 import 'package:taskati_app/core/utils/colors.dart';
-import 'package:taskati_app/core/utils/text_style.dart';
 
-class UploadPage extends StatefulWidget {
-  const UploadPage({super.key});
+class UploadScreen extends StatefulWidget {
+  const UploadScreen({super.key});
 
   @override
-  State<UploadPage> createState() => _UploadPageState();
+  State<UploadScreen> createState() => _UploadScreenState();
 }
 
-class _UploadPageState extends State<UploadPage> {
-  XFile? imageFile;
-  final _controller = TextEditingController();
-
-  Future<void> _pickImage(ImageSource source) async {
-    final picked = await ImagePicker().pickImage(source: source);
-    if (picked != null) {
-      setState(() {
-        imageFile = picked;
-      });
-    }
-  }
-
-  void _onDone() {
-    if (_controller.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter your name")),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Your name is: ${_controller.text}")),
-      );
-    }
-  }
+class _UploadScreenState extends State<UploadScreen> {
+  String path = '';
+  final nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -42,58 +22,66 @@ class _UploadPageState extends State<UploadPage> {
       appBar: AppBar(
         actions: [
           TextButton(
-            onPressed: _onDone,
-            child: const Text("Done"),
+            onPressed: () {
+              if (path.isNotEmpty && nameController.text.isNotEmpty) {
+                LocalHelper.putUserData(nameController.text, path);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Data Saved Successfully!')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter name and image')),
+                );
+              }
+            },
+            child: const Text('Done'),
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 80,
-              backgroundColor: Appcolor.primarycolor,
-              backgroundImage: imageFile != null
-                  ? FileImage(File(imageFile!.path))
-                  : const AssetImage('assets/images/empty user.png')
-                      as ImageProvider,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 80,
+            backgroundColor: Appcolor.primarycolor,
+            backgroundImage:
+                path.isNotEmpty ? Image.file(File(path)).image : null,
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () async {
+              final pickedFile =
+                  await ImagePicker().pickImage(source: ImageSource.camera);
+              if (pickedFile != null) {
+                setState(() {
+                  path = pickedFile.path;
+                });
+              }
+            },
+            child: const Text('Upload From Camera'),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () async {
+              final pickedFile =
+                  await ImagePicker().pickImage(source: ImageSource.gallery);
+              if (pickedFile != null) {
+                setState(() {
+                  path = pickedFile.path;
+                });
+              }
+            },
+            child: const Text('Upload From Gallery'),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: nameController,
+            decoration: const InputDecoration(
+              labelText: 'Enter Your Name',
+              border: OutlineInputBorder(),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Appcolor.primarycolor,
-                foregroundColor: Appcolor.whitecolor,
-              ),
-              onPressed: () => _pickImage(ImageSource.camera),
-              child: const Text("Upload From Camera"),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Appcolor.primarycolor,
-                foregroundColor: Appcolor.whitecolor,
-              ),
-              onPressed: () => _pickImage(ImageSource.gallery),
-              child: const Text("Upload From Gallery"),
-            ),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: _controller,
-              decoration: InputDecoration(
-                labelText: "Enter Your Name",
-                labelStyle: TextStyles.bodyStyle(color: Appcolor.graycolor),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: BorderSide(color: Appcolor.bordecolor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Appcolor.primarycolor),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
