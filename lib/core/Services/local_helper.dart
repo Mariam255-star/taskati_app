@@ -1,12 +1,12 @@
 import 'package:hive/hive.dart';
 
 class LocalHelper {
-  static late Box userBox;
+  static late Box<dynamic> userBox;
 
-  static String kName = 'name';
-  static String kImage = 'image';
-  static String kIsUploaded = 'isUploaded';
-  static String kTasks = 'tasks'; 
+  static const String kName = 'name';
+  static const String kImage = 'image';
+  static const String kIsUploaded = 'isUploaded';
+  static const String kTasks = 'tasks';
 
   static Future<void> init() async {
     userBox = await Hive.openBox('userBox');
@@ -27,12 +27,12 @@ class LocalHelper {
   }
 
   static void addTask(String title, String desc) {
-    List tasks = userBox.get(kTasks, defaultValue: []);
-    tasks.add({"title": title, "desc": desc});
-    userBox.put(kTasks, tasks);
+    final List current = List.from(userBox.get(kTasks, defaultValue: []));
+    current.add({'title': title, 'desc': desc});
+    userBox.put(kTasks, current);
   }
 
-  static List getTasks() {
-    return userBox.get(kTasks, defaultValue: []);
+  static List<dynamic> getTasks() {
+    return List.from(userBox.get(kTasks, defaultValue: []));
   }
 }

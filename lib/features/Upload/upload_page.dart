@@ -16,116 +16,97 @@ class UploadScreen extends StatefulWidget {
 class _UploadScreenState extends State<UploadScreen> {
   final TextEditingController nameController = TextEditingController();
   String? imagePath;
-  final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(ImageSource source) async {
-    try {
-      final XFile? picked = await _picker.pickImage(source: source);
-      if (picked != null) {
-        setState(() {
-          imagePath = picked.path;
-        });
-      }
-    } catch (e) {
-      debugPrint('pick image error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to pick image')),
-      );
+    final picked = await ImagePicker().pickImage(source: source);
+    if (picked != null) {
+      setState(() {
+        imagePath = picked.path;
+      });
     }
   }
 
-  Future<void> _saveAndNavigate() async {
-    final String name = nameController.text.trim();
-    if (name.isEmpty || imagePath == null || imagePath!.isEmpty) {
+  void _saveAndGo() {
+    if (nameController.text.trim().isEmpty || imagePath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter name and choose image')),
+        const SnackBar(content: Text("Please enter your name and pick an image")),
       );
       return;
     }
-
-    // try to save and then navigate
-    try {
-      LocalHelper.putUserData(name, imagePath!);
-      // navigate using your helper
-      await pushWithReplacement(context, const HomeScreen());
-    } catch (e, st) {
-      debugPrint('save error: $e\n$st');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to save data')),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    super.dispose();
+    LocalHelper.putUserData(nameController.text.trim(), imagePath!);
+    pushWithReplacement(context, const HomeScreen());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Upload'),
         actions: [
           TextButton(
-            onPressed: _saveAndNavigate,
-            child: const Text('Done', style: TextStyle(color: Colors.white)),
+            onPressed: _saveAndGo,
+            child: const Text(
+              'Done',
+              style: TextStyle(color: Colors.black),
+            ),
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () => _pickImage(ImageSource.gallery),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Appcolor.primarycolor,
-                  backgroundImage: imagePath != null
-                      ? FileImage(File(imagePath!))
-                      : const AssetImage('assets/images/empty user.png')
-                          as ImageProvider,
-                  child: imagePath == null
-                      ? const Icon(Icons.camera_alt, size: 30, color: Colors.white)
-                      : null,
-                ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 80,
+              backgroundColor: Appcolor.primarycolor,
+              backgroundImage: imagePath != null
+                  ? FileImage(File(imagePath!))
+                  : const AssetImage('assets/images/empty user.png') as ImageProvider,
+              child: imagePath == null
+                  ? const Icon(Icons.person, size: 50, color: Colors.white)
+                  : null,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _pickImage(ImageSource.camera),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Appcolor.primarycolor,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(250, 50),
               ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () => _pickImage(ImageSource.camera),
-                    icon: const Icon(Icons.camera),
-                    label: const Text('Camera'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Appcolor.primarycolor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: () => _pickImage(ImageSource.gallery),
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Gallery'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Appcolor.primarycolor,
-                    ),
-                  ),
-                ],
+              child: const Text('Upload From Camera'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => _pickImage(ImageSource.gallery),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Appcolor.primarycolor,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(250, 50),
               ),
-              const SizedBox(height: 20),
-              TextField(
+              child: const Text('Upload From Gallery'),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: Divider(color: Appcolor.bordecolor, thickness: 1),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Enter your name',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: 'Enter Your Name',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Appcolor.primarycolor),
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

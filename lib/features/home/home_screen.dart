@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:taskati_app/core/Services/local_helper.dart';
+import 'package:taskati_app/core/functions/navigation.dart';
 import 'package:taskati_app/core/utils/colors.dart';
+import 'package:taskati_app/features/addTask/add_task.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,7 +13,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List tasks = [];
+  List<dynamic> tasks = [];
 
   @override
   void initState() {
@@ -19,45 +21,36 @@ class _HomeScreenState extends State<HomeScreen> {
     tasks = LocalHelper.getTasks();
   }
 
-  void addTaskDialog() {
+  void _showAddTaskDialog() {
     final titleController = TextEditingController();
     final descController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Add Task"),
+        title: const Text('Add Task'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(labelText: "Task Title"),
-            ),
-            TextField(
-              controller: descController,
-              decoration: const InputDecoration(labelText: "Task Description"),
-            ),
+            TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Title')),
+            TextField(controller: descController, decoration: const InputDecoration(labelText: 'Description')),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
-              if (titleController.text.isNotEmpty &&
-                  descController.text.isNotEmpty) {
-                LocalHelper.addTask(
-                    titleController.text, descController.text);
+              final t = titleController.text.trim();
+              final d = descController.text.trim();
+              if (t.isNotEmpty && d.isNotEmpty) {
+                LocalHelper.addTask(t, d);
                 setState(() {
                   tasks = LocalHelper.getTasks();
                 });
                 Navigator.pop(context);
               }
             },
-            child: const Text("Add"),
+            child: const Text('Add'),
           ),
         ],
       ),
@@ -66,123 +59,74 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String? name = LocalHelper.getData(LocalHelper.kName);
-    final String? imagePath = LocalHelper.getData(LocalHelper.kImage);
+    final String? name = LocalHelper.getData(LocalHelper.kName) as String?;
+    final String? image = LocalHelper.getData(LocalHelper.kImage) as String?;
 
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Hello, ${name ?? "User"}",
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Appcolor.primarycolor,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        "Have A Nice Day.",
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                  CircleAvatar(
-                    radius: 25,
-                    backgroundImage: (imagePath != null && imagePath.isNotEmpty)
-                        ? FileImage(File(imagePath))
-                        : const AssetImage("assets/images/empty user.png")
-                            as ImageProvider,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // Add Task Button
-              ElevatedButton(
-                onPressed: addTaskDialog,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Appcolor.primarycolor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text("+ Add Task"),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Task List
-              Expanded(
-                child: tasks.isEmpty
-                    ? const Center(child: Text("No Tasks Added"))
-                    : ListView.builder(
-                        itemCount: tasks.length,
-                        itemBuilder: (context, index) {
-                          final task = tasks[index];
-                          return TaskCard(
-                            title: task["title"],
-                            desc: task["desc"],
-                            time: "No Time",
-                            color: Colors.teal,
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Appcolor.whitecolor,
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: Appcolor.primarycolor,
+              backgroundImage: (image != null && image.isNotEmpty)
+                  ? FileImage(File(image))
+                  : const AssetImage('assets/images/empty user.png') as ImageProvider,
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Welcome 👋', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                Text(name ?? 'User', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+              ],
+            ),
+          ],
         ),
       ),
-    );
-  }
-}
-
-class TaskCard extends StatelessWidget {
-  final String title;
-  final String time;
-  final String desc;
-  final Color color;
-
-  const TaskCard({
-    super.key,
-    required this.title,
-    required this.time,
-    required this.desc,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Today's Tasks", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 15),
+            Expanded(
+              child: tasks.isEmpty
+                  ? const Center(child: Text('No Tasks Added'))
+                  : ListView.separated(
+                      itemCount: tasks.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final t = tasks[index];
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Appcolor.primarycolor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.check_circle_outline, color: Colors.black54),
+                              const SizedBox(width: 10),
+                              Expanded(child: Text(t['title'] ?? 'No Title', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white)),
-          const SizedBox(height: 8),
-          Text(desc,
-              style: const TextStyle(fontSize: 14, color: Colors.white)),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed:() {
+          pushTo(context, const AddTaskPage());
+        },
+        backgroundColor: Appcolor.primarycolor,
+        child: const Icon(Icons.add),
       ),
     );
   }
